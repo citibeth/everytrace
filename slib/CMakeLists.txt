@@ -1,10 +1,20 @@
+# ------------ Header Files
+
+install (FILES
+	${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
+	${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
+         DESTINATION include)
 
 
 # ----------- The file everytrace_refaddr.o to include in YOUR libraries
 add_library(everytrace_refaddr STATIC everytrace_refaddr.c)
 set_target_properties(everytrace_refaddr PROPERTIES RULE_LAUNCH_LINK
-	"sh ${CMAKE_SOURCE_DIR}/cmake/scripts/cpo ${CMAKE_BINARY_DIR} <OBJECTS> --")
+	"sh ${CMAKE_SOURCE_DIR}/cmake/scripts/cpo ${CMAKE_BINARY_DIR}/slib <OBJECTS> --")
 
+install (FILES
+	${CMAKE_CURRENT_BINARY_DIR}/everytrace_refaddr.c.o
+		RENAME everytrace_refaddr_gcc.o
+		DESTINATION lib)
 
 
 # ----------- The main everytrace libraries
@@ -43,12 +53,3 @@ if(${USE_MPI})
 endif()
 
 
-install (FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
-	${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
-         DESTINATION include)
-
-install (FILES
-	${CMAKE_CURRENT_BINARY_DIR}/everytrace_refaddr_gcc.c.o
-		RENAME everytrace_refaddr_gcc.o
-		DESTINATION lib)
