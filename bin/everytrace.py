@@ -14,8 +14,10 @@ def tag_reader(fin):
 		match = taggedRE.match(line)
 		if match:
 			yield match.group(1), match.group(4)	# tag, line
-                else:
-			yield '[e0]',line		# Assign everythign in unlabelled file to stderr
+		else:
+			# Assign everythign in unlabelled file to stderr on rank 0.
+			# This allows us to work without MPI.
+			yield 'e0',line
 
 
 # -------------------------------------------
@@ -106,17 +108,21 @@ for lib in libs:
 	# Get the location of refaddr in this library
 	ref_addr_lib = read_refaddr(lib)
 
-	# Get all stacktraces together, for this one library
+	# Combine stacktraces from all tags for this one library.
 	all_stacktrace_lines = list()		# Start with a newline
 	for tag in sorted(list(iter(tag_vars))):
 		vars = tag_vars[tag]
+		ref_addrs_log = vars['ref_addrs_log']
 
-		ref_offset = ref_addr_lib - vars['ref_addrs_log'][lib]
-		this_stacktrace_lines = ['%x' % (x + ref_offset) for x in vars['stacktrace_r']]
-		vars['stacktrace_lines'] = this_stacktrace_lines
+		# Only do this (lib,tag) combo if we have a reference ID for
+		# this lib in this tag.
+		if lib in ref_addrs_log:
+			ref_offset = ref_addr_lib - vars['ref_addrs_log'][lib]
+			this_stacktrace_lines = ['%x' % (x + ref_offset) for x in vars['stacktrace_r']]
+			vars['stacktrace_lines'] = this_stacktrace_lines
 
-		all_stacktrace_lines.append('tag:'+tag)
-		all_stacktrace_lines += this_stacktrace_lines
+			all_stacktrace_lines.append('tag:'+tag)
+			all_stacktrace_lines += this_stacktrace_lines
 
 	# Look up symbols
 	cmd = ['xcrun', 'atos', '-o', lib]
