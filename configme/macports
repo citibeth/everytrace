@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cmake \
+	-DCMAKE_CXX_COMPILER=g++ \
+	-DCMAKE_C_COMPILER=gcc \
+	-DCMAKE_Fortran_COMPILER=gfortran \
+	-DCMAKE_INSTALL_PREFIX:PATH=$MACPORTS/opt/everytrace \
+	-DUSE_FORTRAN=YES \
+	-DUSE_MPI=YES \
+	$@
