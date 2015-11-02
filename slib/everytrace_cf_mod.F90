@@ -16,10 +16,12 @@ END INTERFACE
 
 CONTAINS
 
+#ifdef CMAKE_FORTRAN_GNU
 subroutine everytrace_dump() bind(c)
 	! Unlike the GNU C backtrace(), this one will
 	! trace past C/Fortran call interfaces.
 	call backtrace
 end subroutine everytrace_dump
+#endif
 
 end module everytrace

@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "everytrace.h"
+#include "config.h"
 
+#ifdef USE_BACKTRACE
 static initialized = 0;
 
 static char *sig_names[] = {
@@ -20,10 +22,12 @@ static void sig_handler(int sig)
 	fprintf(stderr, "Caught signal %d (%S)\n", sig, name);
 	everytrace_exit(sig);
 }
+#endif
 
 // To be called by a main program upon startup
 void everytrace_init()
 {
+#ifdef USE_BACKTRACE
 	char *everytrace;
 
 	everytrace = getenv("EVERYTRACE");	// Use getenv() for non-GNU compiler
@@ -51,6 +55,7 @@ void everytrace_init()
 
 
 	initialized = 1;
+#endif
 }
 
 

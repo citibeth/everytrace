@@ -9,10 +9,47 @@ PROJECT(CPO C)
 list (APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include (setup_rpath)
 
-# ------- Process Configure Options
+
+
+# --------------------- Define our toolchain
 if (NOT DEFINED USE_FORTRAN)
 	set(USE_FORTRAN NO)
 endif()
+
+if (${USE_FORTRAN})
+	if ("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "GNU")
+		add_definitions(-DCMAKE_FORTRAN_GNU)
+	elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Clang")
+		add_definitions(-DCMAKE_FORTRAN_CLANG)
+	elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel")
+		add_definitions(-DCMAKE_FORTRAN_INTEL)
+	elseif("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "MSVC")
+		add_definitions(-DCMAKE_FORTRAN_MSVC)
+	endif()
+endif()
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	add_definitions(-DCMAKE_CXX_GNU)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	add_definitions(-DCMAKE_CXX_CLANG)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+	add_definitions(-DCMAKE_CXX_INTEL)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	add_definitions(-DCMAKE_CXX_MSVC)
+endif()
+
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	add_definitions(-DCMAKE_C_GNU)
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+	add_definitions(-DCMAKE_C_CLANG)
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
+	add_definitions(-DCMAKE_C_INTEL)
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+	add_definitions(-DCMAKE_C_MSVC)
+endif()
+
+
+# ------- Process Configure Options
 
 if (NOT DEFINED USE_MPI)
 	set(USE_MPI NO)
@@ -32,5 +69,5 @@ endif()
 
 
 # -------- Process subdirectories of the build
-add_subdirectory(gcc)
+add_subdirectory(slib)
 add_subdirectory(bin)

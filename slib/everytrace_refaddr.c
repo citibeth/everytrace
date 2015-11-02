@@ -1,9 +1,13 @@
 // http://stackoverflow.com/questions/1681060/library-path-when-dynamically-loaded
 // http://stackoverflow.com/questions/2053029/how-exactly-does-attribute-constructor-work
 
+#ifdef __GNUC__
+// Right now, only tested for GNU C
+
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // At library load time:
 // Determine the path of the library we were loaded from.  Print it,
@@ -24,3 +28,5 @@ static void everytrace_refaddr(void) {
 	fprintf(stderr, "EVERYTRACE REFERENCE: \"%s\" %p\n", dl_info.dli_fname, &everytrace_refaddr);
 	fflush(stderr);
 }
+
+#endif
