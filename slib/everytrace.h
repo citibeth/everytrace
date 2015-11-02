@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-	void everytrace_exit();
+	void everytrace_exit(int retcode);
 	void everytrace_init();
 
 #ifdef __cplusplus
