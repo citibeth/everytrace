@@ -19,7 +19,7 @@ static void sig_handler(int sig)
 	if (sig >= 31) name = "<UNKNOWN>";
 	else name = sig_names[sig];
 
-	fprintf(stderr, "Caught signal %d (%S)\n", sig, name);
+	fprintf(stderr, "Caught signal %d (%s)\n", sig, name);
 	everytrace_exit(sig);
 }
 #endif
@@ -35,7 +35,7 @@ void everytrace_init()
 
 	if (initialized) return;
 
-	fprintf(stderr, "Everytrace installing signal handlers.\n");
+	fprintf(stderr, "Everytrace installing signal handlers xxx.\n");
 
 	// Install signal handlers, for stacktraces on segfaults and similar.
 	signal(SIGKILL, &sig_handler);
@@ -52,7 +52,6 @@ void everytrace_init()
 	signal(SIGSEGV, &sig_handler);
 	signal(SIGSYS, &sig_handler);
 	signal(SIGTERM, &sig_handler);
-
 
 	initialized = 1;
 #endif

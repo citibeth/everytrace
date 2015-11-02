@@ -16,6 +16,7 @@
 		for (i=1; i<ntrace; ++i) {	// Start at 1, don't print ourselves
 			fprintf(stderr, "#%d 0x%lx\n", i-1, (uintptr_t)(trace[i]));
 		}
+		fflush(stderr);
 	}
 
 
@@ -26,6 +27,7 @@
 	void everytrace_dump(void)
 	{
 		fprintf(stderr, "[No C backtrace available...]\n");
+		fflush(stderr);
 	}
 
 #	endif

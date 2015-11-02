@@ -7,7 +7,8 @@
 
 void everytrace_exit(int retcode)
 {
-  fprintf(stderr, "Everytrace Dump, exit: %d\n", retcode);
+	fprintf(stderr, "Everytrace Dump, exit: %d\n", retcode);
+	fflush(stderr);
 #ifdef USE_BACKTRACE
 	everytrace_dump();
 
