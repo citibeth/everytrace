@@ -13,7 +13,7 @@ set_target_properties(everytrace_refaddr PROPERTIES RULE_LAUNCH_LINK
 
 install (FILES
 	${CMAKE_CURRENT_BINARY_DIR}/everytrace_refaddr.c.o
-		RENAME everytrace_refaddr_gcc.o
+		RENAME everytrace_refaddr.o
 		DESTINATION lib)
 
 
