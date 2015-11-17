@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "dump.h"
+#include "config.h"
+#include "everytrace.h"
 
 
 void everytrace_exit(int retcode)

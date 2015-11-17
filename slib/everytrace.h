@@ -7,6 +7,7 @@ extern "C" {
 
 	void everytrace_exit(int retcode);
 	void everytrace_init();
+	void everytrace_dump();
 
 #ifdef __cplusplus
 }
