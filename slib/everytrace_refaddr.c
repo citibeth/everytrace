@@ -9,12 +9,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Runtime flags for runtime dispatch of functions
+int use_fortran = 0;
+int use_mpi = 0;
+
 // At library load time:
 // Determine the path of the library we were loaded from.  Print it,
 // along with a reference address, on STDERR.  This allows later
 // translation of relative library load addresses.
-__attribute__((constructor))
-static void everytrace_refaddr(void) {
+void _everytrace_refaddr(void) {
     Dl_info dl_info;
 	char *everytrace;
 
