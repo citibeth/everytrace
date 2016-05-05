@@ -28,6 +28,10 @@ static void sig_handler(int sig)
 void everytrace_init()
 {
 #ifdef USE_BACKTRACE
+#if 0
+// These are Macintosh-only.  Use correct conditional compilation
+// for Linux signals
+
 	char *everytrace;
 
 	everytrace = getenv("EVERYTRACE");	// Use getenv() for non-GNU compiler
@@ -54,6 +58,7 @@ void everytrace_init()
 	signal(SIGTERM, &sig_handler);
 
 	initialized = 1;
+#endif
 #endif
 }
 

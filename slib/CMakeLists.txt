@@ -2,8 +2,12 @@
 
 install (FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
-	${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
-         DESTINATION include)
+		DESTINATION include)
+
+if(${USE_FORTRAN})
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
+		DESTINATION include)
+endif()
 
 
 # ----------- The file everytrace_refaddr.o to include in YOUR libraries
@@ -29,7 +33,7 @@ install(TARGETS everytrace_c DESTINATION lib)
 if(${USE_FORTRAN})
 	add_library(everytrace_cf SHARED
 		init.c dump.c exit.c
-		everytrace_cf_mod.f90)
+		everytrace_cf_mod.F90)
 	set_property(TARGET everytrace_cf APPEND PROPERTY COMPILE_FLAGS "-DFORTRAN_VERSION")
 	install(TARGETS everytrace_cf DESTINATION lib)
 endif()
@@ -45,7 +49,7 @@ if(${USE_MPI})
 	if (${USE_FORTRAN})
 		add_library(everytrace_cf_mpi SHARED
 			init.c dump.c exit_mpi.c
-			everytrace_cf_mod.f90)
+			everytrace_cf_mod.F90)
 		set_property(TARGET everytrace_cf_mpi APPEND PROPERTY COMPILE_FLAGS "-DFORTRAN_VERSION")
 		target_link_libraries(everytrace_cf_mpi ${MPI_C_LIBRARIES})
 		install(TARGETS everytrace_cf_mpi DESTINATION lib)
