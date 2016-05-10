@@ -1,0 +1,8 @@
+*!
+#**
+spack-build.env
+spack-build.out
+spack-build/
+spconfig.py
+*~
+build/

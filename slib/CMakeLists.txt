@@ -1,59 +1,50 @@
 # ------------ Header Files
 
 install (FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
-		DESTINATION include)
+    ${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
+        DESTINATION include)
 
 if(${USE_FORTRAN})
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
-		DESTINATION include)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
+        DESTINATION include)
 endif()
 
 
 # ----------- The file everytrace_refaddr.o to include in YOUR libraries
-add_library(everytrace_refaddr STATIC everytrace_refaddr.c)
-set_target_properties(everytrace_refaddr PROPERTIES RULE_LAUNCH_LINK
-	"sh ${CMAKE_SOURCE_DIR}/cmake/scripts/cpo ${CMAKE_BINARY_DIR}/slib <OBJECTS> --")
+list(APPEND VARIANTS c)
+if (${USE_FORTRAN})
+    if (${USE_MPI})
+        list(APPEND VARIANTS cf cf_mpi c_mpi)
+    else()
+        list(APPEND VARIANTS cf)
+    endif()
+else()
+    if (${USE_MPI})
+        list(APPEND VARIANTS c_mpi)
+    endif()
+endif()
 
-install (FILES
-	${CMAKE_CURRENT_BINARY_DIR}/everytrace_refaddr.c.o
-		RENAME everytrace_refaddr.o
-		DESTINATION lib)
+foreach (VARIANT ${VARIANTS})
+    message("Adding variant everytrace_" ${VARIANT} "_refaddr.o")
+    add_library(everytrace_${VARIANT}_refaddr SHARED everytrace_${VARIANT}_refaddr.c)
+    set_target_properties(everytrace_${VARIANT}_refaddr PROPERTIES RULE_LAUNCH_LINK
+        "sh ${CMAKE_SOURCE_DIR}/cmake/scripts/cpo ${CMAKE_BINARY_DIR}/slib <OBJECTS> --")
 
+    install (FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/everytrace_${VARIANT}_refaddr.c.o
+            RENAME everytrace_${VARIANT}_refaddr.o
+            DESTINATION lib)
 
-# ----------- The main everytrace libraries
+endforeach()
+
+# ----------- The main everytrace library
 
 # ----------- everytrace_c
-add_library(everytrace_c SHARED
-	init.c dump.c exit.c)
-install(TARGETS everytrace_c DESTINATION lib)
-
-
-# ----------- everytrace_cf
-if(${USE_FORTRAN})
-	add_library(everytrace_cf SHARED
-		init.c dump.c exit.c
-		everytrace_cf_mod.F90)
-	set_property(TARGET everytrace_cf APPEND PROPERTY COMPILE_FLAGS "-DFORTRAN_VERSION")
-	install(TARGETS everytrace_cf DESTINATION lib)
+list(APPEND SOURCES everytrace.c)
+if (${USE_FORTRAN})
+    list(APPEND SOURCES everytrace_mod.F90)
 endif()
 
-if(${USE_MPI})
-# ----------- everytrace_c_mpi
-	add_library(everytrace_c_mpi SHARED
-		init.c dump.c exit_mpi.c)
-	target_link_libraries(everytrace_c_mpi ${MPI_C_LIBRARIES})
-	install(TARGETS everytrace_c_mpi DESTINATION lib)
-
-# ----------- everytrace_cf_mpi
-	if (${USE_FORTRAN})
-		add_library(everytrace_cf_mpi SHARED
-			init.c dump.c exit_mpi.c
-			everytrace_cf_mod.F90)
-		set_property(TARGET everytrace_cf_mpi APPEND PROPERTY COMPILE_FLAGS "-DFORTRAN_VERSION")
-		target_link_libraries(everytrace_cf_mpi ${MPI_C_LIBRARIES})
-		install(TARGETS everytrace_cf_mpi DESTINATION lib)
-	endif()
-endif()
-
-
+add_library(everytrace SHARED ${SOURCES})
+target_link_libraries(everytrace ${MPI_C_LIBRARIES})
+install(TARGETS everytrace DESTINATION lib)
