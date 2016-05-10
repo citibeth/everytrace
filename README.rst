@@ -63,13 +63,13 @@ Once a program has been Everytrace-enabled, you can obtain stacktraces as follow
 
     mpirun -np 17 myprogram ... >log 2>&1 &
    
-   you do:
+   you do::
    
     mpirun -np 17 mpilabel myprogram ... >log &
 
    This will send STDOUT and STDERR of all MPI processes to STDOUT, labeling each line according to the MPI rank from which it came.  Output from a single MPI rank can later be obtained via grep.
 
- 3. When your program crashes, run `everytrace` on its STDOUT (presuming you've saved that to a log file)::
+3. When your program crashes, run `everytrace` on its STDOUT (presuming you've saved that to a log file)::
  
     everytrace log
     
