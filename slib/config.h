@@ -9,7 +9,7 @@
 #	define C_BACKTRACE_AVAILABLE
 #endif
 
-#if defined(CMAKE_FORTRAN_GNU) && defined(FORTRAN_VERSION)
+#if defined(CMAKE_FORTRAN_GNU)
 #	define FORTRAN_BACKTRACE_AVAILABLE
 #endif
 
