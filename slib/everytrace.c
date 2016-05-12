@@ -2,6 +2,11 @@
 #   include <mpi.h>
 #endif
 
+
+#include <execinfo.h>
+#include <unistd.h>
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,7 +35,7 @@ static char *signal_names[MAX_SIGNAL];
 static void set_signal_name(int sig, char *name)
 {
     if (sig >= MAX_SIGNAL) {
-        fprintf("Signal ID too large: %d %s\n", sig, name);
+        fprintf(stderr, "Signal ID too large: %d %s\n", sig, name);
         exit(0);
     }
     signal_names[sig] = name;
@@ -97,7 +102,7 @@ void everytrace_init()
 #endif
 }
 // -------------------------------------------------------------
-#ifdef USE_C_BACKTRACE
+#ifdef USE_BACKTRACE
 #   ifdef __GNUC__
 
 #   include <inttypes.h>        // C-99
@@ -106,19 +111,19 @@ void everytrace_init()
         // Defer to the Fortran backtrace if we're using Fortran
 #       ifdef FORTRAN_BACKTRACE_AVAILABLE
         if (_everytrace_use_fortran) {
-            everytrace_dump_f()
+            everytrace_dump_f();
             return;
         }
 #       endif
-
-
         const int MAX_TRACE = 200;
         void *trace[MAX_TRACE];
         size_t i;
         size_t ntrace = backtrace(trace, MAX_TRACE);
 
-        for (i=1; i<ntrace; ++i) {  // Start at 1, don't print ourselves
-            fprintf(stderr, "#%d 0x%lx\n", i-1, (uintptr_t)(trace[i]));
+        for (i=0; i<ntrace; ++i) {
+            fprintf(stderr, "#%d 0x%lx ", i, (uintptr_t)(trace[i]));
+            // http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
+            backtrace_symbols_fd(&trace[i], 1, STDERR_FILENO);
         }
         fflush(stderr);
     }

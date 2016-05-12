@@ -8,6 +8,10 @@ import subprocess
 import io
 import platform
 import os
+import collections
+import StringIO
+
+FrameInfo = collections.namedtuple('FrameInfo', ['saddr', 'addr', 'src_line', 'obj_file', 'symbol'])
 
 # -------------------------------------------
 def stderr_reader(fin):
@@ -19,22 +23,29 @@ def stderr_reader(fin):
         if line[28] == 'e':
             yield line[33:]
 # -------------------------------------------
-def open_files_in_dir(log_dir):
+def log_file_list(log_dir):
+    """Returns a list of log files to open"""
+    if log_dir == '-':
+        return ['-']
+    elif os.path.isfile(log_dir):
+        return [log_dir]
+    else:
+        return [os.path.join(log_dir, x) for x in sorted(os.listdir(log_dir))]
+
+
+def open_files(fnames):
     """Generator opens all files in a directory, in sequence.
     Yields: (leafname, open filehandle)
     log_dir:
         Directory to open.
         If '-', then just open STDIN."""
 
-    if log_dir == '-':
-        yield '<stdin>',sys.stdin
-    elif os.path.isfile(log_dir):
-        with open(log_dir, 'r') as fin:
-            yield fname,fin
-    else:
-        for fname in sorted(os.listdir(log_dir)):
-            with open(os.path.join(log_dir, fname), 'r') as fin:
-                yield fname,fin
+    for fname in fnames:
+        if fname == '-':
+            yield fname,sys.stdin
+        else:
+            with open(fname, 'r') as fin:
+                yield fname, fin
 
 # -------------------------------------------
 # Finite state machine as we parse through STDERR.
@@ -68,13 +79,22 @@ log_dir = sys.argv[1]
 
 # ------------ Parse the log
 ref_addrRE = re.compile(r'^_EVERYTRACE_ REFERENCE\s+"(.*?)"\s*(0x[0-9a-fA-F]+)')
-tracelineRE = re.compile(r'#\d*\s*(0x[0-9a-fA-F]+)')
+tracelineRE = re.compile(r'#\d*\s*(0x[0-9a-fA-F]+)\s*(.*)')
+# Optional part of trace line, if C tracing used.
+# Eg: #3 0x7f45b1b49d8a /home/me/ettest/build/libettestlib.so(_Z5main4Pci+0x4a)[0x7f45b1b49d8a]
+ctraceRE = re.compile(r'(.*?)\((.*?)\+(.*?)\)\[(.*?)\]')
 
 # ---------- Open the log(s)
-for tag,fin in open_files_in_dir(log_dir):
+log_files = log_file_list(log_dir)
+use_mpi = (len(log_files) > 1)
+for fname,fin in open_files(log_files):
+    tag = os.path.split(fname)[1]
     stacktraceRE=re.compile(r'^\s*(_EVERYTRACE_ DUMP:).*')
 
-    for line in stderr_reader(fin):
+    if use_mpi:
+        fin = stderr_reader(fin)
+
+    for line in fin:
 
         # ---------- Add to our dict if we need to
         if tag in tag_vars:
@@ -84,8 +104,7 @@ for tag,fin in open_files_in_dir(log_dir):
                 state=S_INITIAL,        # Log parser state
                 ref_addrs_log=dict(),    # library name --> address of everytrace_refaddr in the log
                 raw_lines=list(),        # Raw lines from output to show with stacktrace
-                stacktrace_r=list(),    # Raw numeric stacktrace from log
-                stacktrace_merged=list())    # Final stacktrace after lookups
+                stacktrace=list())    # FrameInfo: saddr, src_line, obj_file, symbol
             tag_vars[tag] = vars
 
         if line.startswith('_EVERYTRACE_'):
@@ -111,8 +130,19 @@ for tag,fin in open_files_in_dir(log_dir):
             match = tracelineRE.match(line)
             if match is not None:
                 addr = match.group(1)
-                vars['stacktrace_r'].append(int(addr, 0))
-                vars['stacktrace_merged'].append(addr)
+
+                # match optional stuff...
+                object_file = None
+                symbol = None
+                ctrace = match.group(2)
+                if ctrace is not None:
+                    match2 = ctraceRE.match(ctrace)
+                    if match2 is not None:
+                        object_file = match2.group(1)
+                        symbol = match2.group(2)
+
+
+                vars['stacktrace'].append(FrameInfo(addr, int(addr,0), [], object_file, symbol))
 
 #for tag in iter(tag_vars):
 #    print(tag, tag_vars[tag]['ref_addrs_log'])
@@ -138,7 +168,7 @@ for lib in libs:
         # this lib in this tag.
         if lib in ref_addrs_log:
             ref_offset = ref_addr_lib - vars['ref_addrs_log'][lib]
-            this_stacktrace_lines = ['%x' % (x + ref_offset) for x in vars['stacktrace_r']]
+            this_stacktrace_lines = ['%x' % (x.addr + ref_offset) for x in vars['stacktrace']]
             vars['stacktrace_lines'] = this_stacktrace_lines
 
             all_stacktrace_lines.append('tag:'+tag)
@@ -166,35 +196,49 @@ for lib in libs:
 
     ret_lines = ret.split('\n')
 
-    for (i,src),sym in zip(enumerate(all_stacktrace_lines), ret_lines):
+    for (i,src),src_line in zip(enumerate(all_stacktrace_lines), ret_lines):
         if src[0:4] == 'tag:':
             tag = src[4:]
             vars = tag_vars[tag]
-            stacktrace_merged = vars['stacktrace_merged']
+            stacktrace = vars['stacktrace']
             i0=i+1
         else:
-            if (sym[0] != '?') and (sym != src):
-                if isinstance(stacktrace_merged[i-i0], str):
-                    stacktrace_merged[i-i0] = [sym,]
-                else:
-                    stacktrace_merged[i-i0].append(sym)
+            ix = i-i0
+            if (src_line[0] != '?') and (src_line != src):
+                stacktrace[ix].src_line.append(src_line)
 
+# Generate the final output
+buf = StringIO.StringIO()
 
 for tag in sorted(iter(list(tag_vars))):
     vars = tag_vars[tag]
     strace = []
-    last_type = None
-    for syms in vars['stacktrace_merged']:
-        if isinstance(syms, str):    # Hex address never converted
-            if last_type != str:
-                strace.append('...')
-                last_type = str
-        else:
-            strace.append(' '.join(syms))
-            last_type = tuple
+    info_last = True
+    for frame in vars['stacktrace']:
+        sout = []
+        if len(frame.src_line) > 0:
+            sout.extend(frame.src_line)
+        elif frame.obj_file is not None:
+            sout.append(os.path.split(frame.obj_file)[1])
+
+        if frame.symbol is not None:
+            sout.append(frame.symbol)
+
+        if len(sout) == 0:
+            sout = [frame.saddr]
+
+        strace.append(' '.join(sout))
 
     if len(vars['raw_lines']) + len(strace) > 0:
         print('=============== {}'.format(tag))
         print('\n'.join(vars['raw_lines']))
         for line in strace:
-            print('  ', line)
+            buf.write('  ')
+            buf.write(line)
+            buf.write('\n')
+
+# Pipe the final output through c++filt
+filt = subprocess.Popen(['c++filt'], stdin=subprocess.PIPE)
+filt.communicate(buf.getvalue())
+filt.wait()
+

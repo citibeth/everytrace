@@ -1,6 +1,6 @@
 install (PROGRAMS
-	${CMAKE_CURRENT_SOURCE_DIR}/everytrace.py
-		RENAME everytrace
+	${CMAKE_CURRENT_SOURCE_DIR}/etr.py
+		RENAME etr
 		DESTINATION bin)
 
 install (PROGRAMS
