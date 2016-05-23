@@ -230,8 +230,9 @@ for tag in sorted(iter(list(tag_vars))):
         strace.append(' '.join(sout))
 
     if len(vars['raw_lines']) + len(strace) > 0:
-        print('=============== {}'.format(tag))
-        print('\n'.join(vars['raw_lines']))
+        buf.write('=============== {}\n'.format(tag))
+        buf.write('\n'.join(vars['raw_lines']))
+        buf.write('\n')
         for line in strace:
             buf.write('  ')
             buf.write(line)
