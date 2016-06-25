@@ -18,7 +18,7 @@ extern int _everytrace_use_mpi;
 // along with a reference address, on STDERR.  This allows later
 // translation of relative library load addresses.
 __attribute__((constructor))
-static void _everytrace_refaddr(void) {
+void _everytrace_refaddr(void) {
     Dl_info dl_info;
     char *everytrace;
 
