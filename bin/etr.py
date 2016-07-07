@@ -57,7 +57,7 @@ libs = set()            # Set of library names in use
 ref_addrs_lib=dict()    # library name --> addr of everytrace_refaddr in the lib
 
 # -------------------------------------------
-nmRE = re.compile(r'([0-9a-fA-F]+)\s+t\s+_everytrace_refaddr\s*')
+nmRE = re.compile(r'([0-9a-fA-F]+)\s+[tT]\s+_everytrace_refaddr\s*')
 def read_refaddr(exe_fname):
     """Given the name of an executable (or .so) file, determines the value
     of the reference address inside it.  This is used to produce an
@@ -157,6 +157,7 @@ for lib in libs:
 for lib in libs:
     # Get the location of refaddr in this library
     ref_addr_lib = read_refaddr(lib)
+    print('ref_addr_lib', ref_addr_lib, lib)
 
     # Combine stacktraces from all tags for this one library.
     all_stacktrace_lines = list()        # Start with a newline
