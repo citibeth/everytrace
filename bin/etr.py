@@ -89,13 +89,12 @@ log_files = log_file_list(log_dir)
 use_mpi = (len(log_files) > 1)
 for fname,fin in open_files(log_files):
     tag = os.path.split(fname)[1]
-    stacktraceRE=re.compile(r'^\s*(_EVERYTRACE_ DUMP:).*')
+    stacktraceRE=re.compile(r'^\s*(_EVERYTRACE_ DUMP:|Backtrace for this error:).*')
 
     if use_mpi:
         fin = stderr_reader(fin)
 
     for line in fin:
-
         # ---------- Add to our dict if we need to
         if tag in tag_vars:
             vars = tag_vars[tag]
