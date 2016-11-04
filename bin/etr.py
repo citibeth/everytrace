@@ -23,15 +23,17 @@ def stderr_reader(fin):
         if line[28] == 'e':
             yield line[33:]
 # -------------------------------------------
-def log_file_list(log_dir):
+def log_file_list(log_dirs):
     """Returns a list of log files to open"""
-    if log_dir == '-':
-        return ['-']
-    elif os.path.isfile(log_dir):
-        return [log_dir]
-    else:
-        return [os.path.join(log_dir, x) for x in sorted(os.listdir(log_dir))]
-
+    ret = list()
+    for log_dir in log_dirs:
+        if log_dir == '-':
+            ret.append('-')
+        elif os.path.isfile(log_dir):
+            ret.append(log_dir)
+        else:
+            ret += [os.path.join(log_dir, x) for x in sorted(os.listdir(log_dir))]
+    return ret
 
 def open_files(fnames):
     """Generator opens all files in a directory, in sequence.
@@ -75,7 +77,7 @@ def read_refaddr(exe_fname):
         return addr
 
 
-log_dir = sys.argv[1]
+log_dirs = sys.argv[1:]
 
 # ------------ Parse the log
 ref_addrRE = re.compile(r'^_EVERYTRACE_ REFERENCE\s+"(.*?)"\s*(0x[0-9a-fA-F]+)')
@@ -85,7 +87,7 @@ tracelineRE = re.compile(r'#\d*\s*(0x[0-9a-fA-F]+)\s*(.*)')
 ctraceRE = re.compile(r'(.*?)\((.*?)\+(.*?)\)\[(.*?)\]')
 
 # ---------- Open the log(s)
-log_files = log_file_list(log_dir)
+log_files = log_file_list(log_dirs)
 use_mpi = (len(log_files) > 1)
 for fname,fin in open_files(log_files):
     tag = os.path.split(fname)[1]
