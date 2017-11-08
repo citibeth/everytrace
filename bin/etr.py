@@ -184,7 +184,6 @@ for lib in libs:
                 cmd.append('0')
             else:
                 cmd.append(line)
-        print(' '.join(cmd))
 
         # Run the cmd and capture output
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
