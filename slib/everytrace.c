@@ -22,6 +22,14 @@ Everytrace-enabled libraries uses the feature. */
 int _everytrace_use_fortran = 0;
 int _everytrace_use_mpi = 0;
 
+/* Programmatically set this to false if you DON'T wnat to dump with
+   Fortran, even if Fortran is enabled. */
+int everytrace_dump_with_fortran = 1;
+
+/** (OPTIONAL) User calls this to process an error.  Or a library might like to
+use another way int Everytrace. */
+everytrace_error_ptr everytrace_error;
+
 extern everytrace_dump_f();
 
 // -------------------------------------------------------------
@@ -47,14 +55,18 @@ static void sig_handler(int sig)
     if (sig < MAX_SIGNAL) name = signal_names[sig];
     if (name == NULL) name = "<UNKNOWN>";
 
-    fprintf(stderr, "_EVERYTRACE_: Caught signal %d (%s)\n", sig, name);
-    everytrace_exit(sig);
+    char buf[100];
+    snprintf(buf, 100, "_EVERYTRACE_: Caught signal %d (%s)\n", sig, name);
+    (*everytrace_exit)(sig, buf);
 }
 #endif
 
 // To be called by a main program upon startup
 void everytrace_init()
 {
+    everytrace_exit = &everytrace_exit_default;
+
+    // Set up symbols for user convenience
 #ifdef USE_BACKTRACE
 
     set_signal_name(SIGKILL, "SIGKILL");
@@ -110,7 +122,7 @@ void everytrace_init()
     {
         // Defer to the Fortran backtrace if we're using Fortran
 #       ifdef FORTRAN_BACKTRACE_AVAILABLE
-        if (_everytrace_use_fortran) {
+        if (_everytrace_use_fortran && everytrace_dump_with_fortran) {
             everytrace_dump_f();
             return;
         }
@@ -142,7 +154,8 @@ void everytrace_init()
 #   endif
 #endif
 // -------------------------------------------------------------
-void everytrace_exit(int retcode)
+/** Default binding for everytrace_exit().  Pure C, no exceptions thrown. */
+void everytrace_exit_default(int retcode, char *msg)
 {
     fprintf(stderr, "_EVERYTRACE_ DUMP: Exiting with return code: %d\n", retcode);
     fflush(stdout);
@@ -157,9 +170,14 @@ void everytrace_exit(int retcode)
             MPI_Finalize();
 #       endif
 
+        fprintf(stderr, "%s\n", msg);
+        fflush(stderr);
         exit(retcode);
 #   else
         // No backtrace capability (non-GNU compiler), rely on a segfault to generate a stacktrace.
+        fprintf(stderr, "%s\n", msg);
+        fflush(stderr);
+
 #       ifdef USE_MPI
             MPI_Finalize();
 #       endif
@@ -179,25 +197,19 @@ void everytrace_exit(int retcode)
 // vscprintf() returns the length of the resulting string.
 
  
-void exit_printf(int retcode, const char *format, ...)
+void everytrace_error_default(int retcode, const char *format, ...)
 {
     va_list arglist;
 
-#if 0
     // How to create a string for inclusion in an exeption...
-    va_start(arglist, format)
+    va_start(arglist, format);
     size_t size = vsnprintf(NULL, 0, format, arglist);
     va_end(arglist);
 
-    va_start(arglist, format)
+    va_start(arglist, format);
     char buf[size+1];
     vsnprintf(buf, size+1, format, arglist);
     va_end(arglist);
-#endif
 
-    va_start(arglist, format);
-    fprintf(stderr, format, arglist);
-    va_end(arglist);
-
-    everytrace_exit(retcode);
+    (*everytrace_exit)(retcode, buf);
 }

@@ -17,18 +17,24 @@
 // Define what to actually use.
 
 #if defined(FORTRAN_BACKTRACE_AVAILABLE)
+#   pragma message("FORTRAN_BACKTRACE_AVAILABLE: define USE_FORTRAN_BACKTRACE")
 #   define USE_FORTRAN_BACKTRACE
 #else
+#   pragma message("not FORTRAN_BACKTRACE_AVAILABLE")
 #	if defined(CMAKE_FORTRAN_INTEL)
+#      pragma message("    CMAKE_FORTRAN_INTEL: define USE_NO_BACKTRACE")
 #		define USE_NO_BACKTRACE
 #	elif defined(C_BACKTRACE_AVAILABLE)
+#       pragma message("    C_BACKTRACE_AVAILABLE: define USE_C_BACKTRACE")
 #		define USE_C_BACKTRACE
 #	else
+#       pragma message("    Unrecognized compiler: define USE_NO_BACKTRACE")
 #		define USE_NO_BACKTRACE
 #	endif
 #endif
 
 #ifndef USE_NO_BACKTRACE
+#   pragma message("define USE_BACKTRACE")
 #	define USE_BACKTRACE
 #endif
 

@@ -147,7 +147,7 @@ for fname,fin in open_files(log_files):
 
 #for tag in iter(tag_vars):
 #    print(tag, tag_vars[tag]['ref_addrs_log'])
-#    print(tag, tag_vars[tag]['stacktrace_r'])
+#    print(tag, tag_vars[tag]['stacktrace'])
 
 
 print('======== Resolving Everytrace-enabled binaries:')
@@ -184,6 +184,7 @@ for lib in libs:
                 cmd.append('0')
             else:
                 cmd.append(line)
+        print(' '.join(cmd))
 
         # Run the cmd and capture output
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)

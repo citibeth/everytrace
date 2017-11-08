@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 enable_language(Fortran)
+enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)
 
 # Needed to get just a single .o file for everytrace_refaddr_gcc
@@ -60,6 +61,13 @@ if(${USE_MPI})
     include_directories(${MPI_C_INCLUDE_PATH})
 endif()
 
+
+if (NOT DEFINED USE_CXX)
+    set(USE_CXX YES)
+endif()
+if (${USE_CXX})
+    add_definitions(-DUSE_CXX)
+endif()
 
 ## -------- Locate External Libraries
 #find_package(Python REQUIRED)

@@ -4,6 +4,12 @@ install (FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/everytrace.h
         DESTINATION include)
 
+if (USE_CXX)
+    install (FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/everytrace.hpp
+            DESTINATION include)
+endif()
+
 if(${USE_FORTRAN})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/everytrace.mod
         DESTINATION include)
@@ -41,6 +47,9 @@ endforeach()
 
 # ----------- everytrace_c
 list(APPEND SOURCES everytrace.c)
+if (${USE_CXX})
+    list(APPEND SOURCES everytrace_cxx.cpp)
+endif()
 if (${USE_FORTRAN})
     list(APPEND SOURCES everytrace_mod.F90)
 endif()
