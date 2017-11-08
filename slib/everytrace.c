@@ -157,7 +157,7 @@ void everytrace_init()
 /** Default binding for everytrace_exit().  Pure C, no exceptions thrown. */
 void everytrace_exit_default(int retcode, char *msg)
 {
-    fprintf(stderr, "_EVERYTRACE_ DUMP: Exiting with return code: %d\n", retcode);
+    fprintf(stderr, "_EVERYTRACE_ DUMP: (retcode=%d) %s\n", retcode, msg);
     fflush(stdout);
     fflush(stderr);
 #   ifdef USE_BACKTRACE

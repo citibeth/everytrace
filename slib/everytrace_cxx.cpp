@@ -27,7 +27,7 @@ msg must be null-terminated*/
 extern "C"
 void everytrace_exit_exception(int retcode, char *msg)
 {
-    fprintf(stderr, "_EVERYTRACE_ DUMP: Dump, then throw C++ exception\n");
+    fprintf(stderr, "_EVERYTRACE_ DUMP: %s\n", msg);
     fflush(stdout);
     fflush(stderr);
 
