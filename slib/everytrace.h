@@ -46,6 +46,8 @@ extern "C" {
     */
     extern everytrace_exit_ptr everytrace_exit;
 
+    /** Set to 1 when a signal is encountered; avoids recursive exits. */
+    extern int everytrace_signal_encountered;
 
     /** Dumps stacktrace to stderr.  Differs depending on compiler,
         language options, etc. */

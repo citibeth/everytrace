@@ -30,6 +30,10 @@ int everytrace_dump_with_fortran = 1;
 use another way int Everytrace. */
 everytrace_error_ptr everytrace_error;
 
+everytrace_exit_ptr everytrace_exit = &everytrace_exit_default;
+
+int everytrace_signal_encountered = 0;
+
 extern everytrace_dump_f();
 
 // -------------------------------------------------------------
@@ -51,6 +55,8 @@ static void set_signal_name(int sig, char *name)
 
 static void sig_handler(int sig)
 {
+    everytrace_signal_encountered = 1;    // Avoid infinite recursion
+
     char *name;
     if (sig < MAX_SIGNAL) name = signal_names[sig];
     if (name == NULL) name = "<UNKNOWN>";
@@ -99,7 +105,7 @@ void everytrace_init()
     signal(SIGQUIT, &sig_handler);
     signal(SIGILL, &sig_handler);
     signal(SIGTRAP, &sig_handler);
-    signal(SIGABRT, &sig_handler);
+    // signal(SIGABRT, &sig_handler);    // exit() uses this, avoid infinite recursion
     signal(SIGFPE, &sig_handler);   // Fortran floating point "traps"
     signal(SIGKILL, &sig_handler);
     signal(SIGBUS, &sig_handler);

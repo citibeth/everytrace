@@ -4,8 +4,6 @@
 #include <everytrace.hpp>
 #include <string>
 
-everytrace_exit_ptr everytrace_exit = &everytrace_exit_default;
-
 /** printf to a std::string */
 static std::string vsprintf(const char* format, std::va_list args)
 {
