@@ -49,6 +49,7 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
 	add_definitions(-DCMAKE_C_MSVC)
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR}/slib)
 
 # ------- Process Configure Options
 
